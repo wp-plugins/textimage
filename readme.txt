@@ -1,7 +1,7 @@
 === TextImage ===
 
 Contributors: davidburns
-Tags: posts, images, privacy
+Tags: post, images, privacy
 Requires at least: 2.1, untested with earlier versions
 Tested up to: 2.1
 Stable tag: trunk
