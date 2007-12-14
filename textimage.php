@@ -1,17 +1,17 @@
 <?php
 /*
 Plugin Name: TextImage
-Plugin URI: none
+Plugin URI: http://harbor.sealrock.com/ti/wp-content/uploads/2007/04/textimage.zip
 Description: This plugin displays the text of your post as a .png image. 
 Author: David Burns
-Version: 0.12
-Author URI: http://davidburns.wordpress.com
+Version: 0.13
+Author URI: http://harbor.sealrock.com/ti/
 */ 
 
 
 /* 
 TextImage for Wordpress
-Copyright (C) 2007 David Burns burns dot research at gmail dot com
+Copyright (C) 2007 David Burns
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -34,6 +34,16 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 	include 'wrapped_text_image.php';
 
+// helper function - for php < 5.1
+
+if ( !function_exists('htmlspecialchars_decode') )
+{
+    function htmlspecialchars_decode($text)
+    {
+        return strtr($text, array_flip(get_html_translation_table(HTML_SPECIALCHARS)));
+    }
+}
+
 // filter function
 
 	function textimage_filter_the_post($the_text)
@@ -49,18 +59,23 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 				$fh = 0 + get_option('textimage_font_height');
 				$iw = 0 + get_option('textimage_image_width');
 				$fontfile = get_option('textimage_font');
-				$image = wrapped_text_image(strip_tags($the_text),$fontfile,
+				$image = wrapped_text_image(htmlspecialchars_decode(strip_tags($the_text)),$fontfile,
 					$fh,$tcol,$bcol,$iw);
 				imagepng($image, $filename); // save to cache
 			} else {
-				error_log("Image in cache, skipping creation.");
+	// not needed in production: error_log("Image in cache, skipping creation.");
 			}
 
 		// PHP would allow us to output the image directly, 
 		// but then caching and the rest of the code would be more complicated.
 
 			$cache_url = get_option('textimage_cache_url');
-			$the_text = $the_text . "<img src=\"$cache_url$basename\">"; // db modified to preserve text
+			$display_the_text = get_option('textimage_display_text');
+			if ($display_the_text == "1") {
+				$the_text = $the_text . "<img src=\"$cache_url$basename\">";
+			} else {
+				$the_text = "<img src=\"$cache_url$basename\">";
+			}
 		}
 		return $the_text;
 	}
@@ -87,13 +102,29 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 		return $fontlist;
 	}
 
+// Validate and add a trailing slash to path if needed
+	function validate_path($t)
+	{
+		$t = stripslashes($t);
+		if ($t[strlen($t)-1] != '/')
+		{
+			// error_log("adding slash to $t");
+			$t .= '/';
+		} else {
+			// error_log("$t does not need a slash.");
+		}
+		return $t;
+	}
+
+
 // options page function
 	function text_image_options()
 	{
 		global $textimage_font, $textimage_font_directory;
 		if (!empty($_POST)) {
-			$textimage_cache = stripslashes($_POST['textimage_cache']);
-			$textimage_cache_url = stripslashes($_POST['textimage_cache_url']);
+			error_log("display text: " . $_POST['textimage_display_text']);
+			$textimage_cache = validate_path($_POST['textimage_cache']);
+			$textimage_cache_url = validate_path($_POST['textimage_cache_url']);
 			// clear the image cache 
 			if ($_POST['clear_cache'] == 1) {
 				$old_cache = get_option('textimage_cache');
@@ -110,7 +141,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 			update_option("textimage_text_color", $_POST['textimage_text_color']);
 			update_option("textimage_background_color", $_POST['textimage_background_color']);
 			update_option("textimage_font", $_POST['textimage_font']);
-		} else {
+			update_option("textimage_display_text", $_POST['textimage_display_text']);
+		} 
 			$textimage_cache = get_option("textimage_cache");
 			$textimage_cache_url = get_option("textimage_cache_url");
 			$textimage_image_width = get_option("textimage_image_width");
@@ -118,8 +150,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 			$textimage_text_color = get_option("textimage_text_color");
 			$textimage_background_color = get_option("textimage_background_color");
 			$textimage_font = get_option("textimage_font");
-		}
-
+			$textimage_display_text = get_option("textimage_display_text");
+		
 		$fontlist = textimage_get_fontlist($textimage_font_directory);
 		?>
 		<div class="wrap">
@@ -170,8 +202,14 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 		?>
 	</select>
 					
-</td></tr>
-
+		</td></tr>
+		<tr><th scope="row">Display text:</th>
+		<td><label for="textimage_display_text"><input type="checkbox" 
+			id="textimage_display_text" name="textimage_display_text"
+			value="1"
+			<?php if (get_option('textimage_display_text') == 1) echo " checked " ; ?> >
+			Display text before image, for testing</label>
+		</td></tr>
 		</table>
 		</form>
 		</div>
@@ -197,4 +235,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 	}
 	add_action('init', 'text_image_init');
 
+/* Version history
+
+	0.13 add textimage_display_text option
+	0.12 use htmlspecialchars_decode/encode 
+	0.11 Added URI to comment, and this version history. also, add a trailing slash if needed to cahce and url.
+	0.1 initial version
+
+*/
 ?>
