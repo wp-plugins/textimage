@@ -54,3 +54,13 @@ italic), or other fancy formatting to your post. You get one font in one size an
 TextImage strips html tags from your post before it renders the image. It does not, however, modify the actual post. If you disable TextImage, all your HTML will work as before.
 
 TextImage renders only posts as images. Titles, comments, and all other content are unaffected. 
+
+== Other notes ==
+
+To my great chagrin I discovered recently that Wordpress.org has been distributing a test 
+version of TextImage that renders both the text and the image. That obviously is of little 
+utility.
+
+This version fixes that by making the test mode an option. If you turn test mode on, you'll 
+see both the text and the image. Some posts display strangely on my test system but that's 
+OK, since it's just for testing.
