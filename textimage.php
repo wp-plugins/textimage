@@ -4,7 +4,7 @@ Plugin Name: TextImage
 Plugin URI: http://harbor.sealrock.com/ti/wp-content/uploads/2007/04/textimage.zip
 Description: This plugin displays the text of your post as a .png image. 
 Author: David Burns
-Version: 0.13
+Version: 0.2
 Author URI: http://harbor.sealrock.com/ti/
 */ 
 
@@ -45,8 +45,40 @@ if ( !function_exists('htmlspecialchars_decode') )
 }
 
 // filter function
+// scan file for <textimage> tags.
+// convert stuff between tags to image.
+// show image inline with text.
 
 	function textimage_filter_the_post($the_text)
+	{
+		
+		$offset  = 0;
+		$offset2 = 0;
+		$offset3 = 0;
+		$pos = strpos($the_text, '<textimage>', $offset);
+		$new_text = "";
+		while ($pos !== false)
+		{
+			$offset2 = $pos + 11; // end of tag
+			$offset3 = strpos($the_text, '</textimage>', $offset);
+			if ($offset3 === false) { 
+				error_log("Unmatched textimage tag");
+				break; 
+			} // error
+			$new_text = $new_text . substr($the_text, $offset, $pos - $offset); // text up to tag
+			$new_text = $new_text . textimage_convert_some_text(substr($the_text, $offset2, $offset3 - $offset2));
+
+			$offset = $offset3 + 12; // start after close tag
+			$pos = strpos($the_text, '<textimage>', $offset);
+		}
+		// all tags processed: now append remaining text
+		$new_text = $new_text . substr($the_text, $offset, strlen($the_text) - $offset);
+		
+		return $new_text;
+	}
+
+	
+	function textimage_convert_some_text($the_text)
 	{
 		global $textimage_font, $textimage_font_directory;
 		if (function_exists('imagettftext')) {
@@ -74,7 +106,7 @@ if ( !function_exists('htmlspecialchars_decode') )
 			if ($display_the_text == "1") {
 				$the_text = $the_text . "<img src=\"$cache_url$basename\">";
 			} else {
-				$the_text = "<img src=\"$cache_url$basename\">";
+				$the_text = "<img src=\"$cache_url$basename\" />"; // close image tag for xhtml compliance
 			}
 		}
 		return $the_text;
