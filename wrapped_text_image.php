@@ -1,7 +1,7 @@
 <?php
 
-/* version: 0.13
- *  Copyright (c) 2002-2007 Seal Rock Research (www.sealrock.com) 
+/* version: 0.2
+ *  Copyright (c) 2002-2008 Seal Rock Research (www.sealrock.com) 
 
  *  all rights reserved.
 
@@ -89,12 +89,12 @@ function wrapped_text_image($text="", $font='/home/david/wp/wp-content/plugins/b
 {
 //	$old_level = error_reporting(6143); //E_ALL
 
-	error_log("Wrapping text with fontheight = $fontheight and width = $width");
+	error_log("Wrapping text '$text'");
 
 	$height = 30;
 	$textangle = 0;
 	
-	$v_pad = 10; // pad at top and bottom of image
+	$v_pad = 6; // pad at top and bottom of image
 	$h_pad = 5; // pad at left and right
 
 	$line_pad = 6; // pad with each line
@@ -114,6 +114,15 @@ function wrapped_text_image($text="", $font='/home/david/wp/wp-content/plugins/b
 	$arr = wrap_text($text, $font, $fontheight, $line_width);
 
 	$height = $v_pad * 2 + sizeof($arr) * $line_height;
+
+	// if only one line, calculate width, otherwise use passed-in width
+	if (sizeof($arr) == 1)
+	{
+		list($blx, $bly, $brx, $bry, $trx, $try, $tlx, $tly) = 
+			imagettfbbox($fontheight, $textangle, $font, $text);
+		$width = $brx - $blx + $h_pad*2;
+	}
+
 	$image = imagecreate($width, $height);
 	$red = ($bgcolor & 0xff0000) >> 16;
 	$green = ($bgcolor & 0x00ff00) >> 8;
@@ -128,7 +137,7 @@ function wrapped_text_image($text="", $font='/home/david/wp/wp-content/plugins/b
 	$textcolor = imagecolorallocate($image, $red, $green, $blue);
 
 	$line_x = $h_pad;
-	$line_y = $line_height + $line_pad; 
+	$line_y = $line_height /* +  $line_pad*/; 
 
 	foreach ( $arr as $s )
 	{
