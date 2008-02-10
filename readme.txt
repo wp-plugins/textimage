@@ -12,9 +12,12 @@ This plugin displays the text of your post as a .png image.
 
 The TextImage plugin for WordPress displays your post text as a PNG image instead of sending it to the browser as normal HTML. You can specify the text color, background color, font, font size, and image width you want to use.
 
-As of version 0.2, you can also convert selected parts of your post by enclosing them between &lt;textimage&gt; and 
-&lt;/textimage&gt; tags.
+Version 0.21 corrects an error in the plugin URI. If you used the "plugin homepage" link to download verion 
+0.2, you got a previous version instead; please download again.
   
+As of version 0.2, you can also convert selected parts of your post by enclosing them between &lt;textimage&gt; and 
+&lt;/textimage&gt; tags. 
+
 Why would you want to do this? Text rendered as an image cannot be read by most robots and filters. TextImage can help 
 ensure that your posts won't be found by search engines and the like. If you want your posts to have the widest audience possible, 
 TextImage probably isn't for you. If you want to maintain a weblog for a private community and keep a low profile, TextImage 
