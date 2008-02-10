@@ -1,11 +1,11 @@
 <?php
 /*
 Plugin Name: TextImage
-Plugin URI: http://harbor.sealrock.com/ti/wp-content/uploads/2007/04/textimage.zip
+Plugin URI: http://t2img.com/wp-content/textimage.zip
 Description: This plugin displays the text of your post as a .png image. 
 Author: David Burns
-Version: 0.2
-Author URI: http://harbor.sealrock.com/ti/
+Version: 0.21
+Author URI: http://www.t2img.com/blog/
 */ 
 
 
