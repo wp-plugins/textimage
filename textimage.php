@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: TextImage
-Plugin URI: http://t2img.com/wp-content/textimage.zip
+Plugin URI: http://t2img.com/blog/wp-content/textimage.zip
 Description: This plugin displays the text of your post as a .png image. 
 Author: David Burns
 Version: 0.21
