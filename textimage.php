@@ -1,10 +1,10 @@
 <?php
 // Plugin Name: TextImage
 /*
-Plugin URI: http://t2img.com/blog/wp-content/textimage.zip
-Description: This plugin displays the text of your post as a .png image. 
+Plugin URI: http://t2img.com/blog/
+Description: This plugin converts text into a .png image.
+Version: 0.22 
 Author: David Burns
-Version: 0.22
 Author URI: http://www.t2img.com/blog/
 */ 
 
