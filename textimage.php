@@ -1,6 +1,6 @@
 <?php
-// Plugin Name: TextImage
-/*
+/* 
+Plugin Name: TextImage
 Plugin URI: http://t2img.com/blog/
 Description: This plugin converts text into a .png image.
 Version: 0.22 
