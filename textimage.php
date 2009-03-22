@@ -1,11 +1,11 @@
 <?php
 /* 
 Plugin Name: TextImage
-Plugin URI: http://t2img.com/blog/
+Plugin URI: http://www.t2img.com/blog/?p=8
 Description: This plugin converts text into a .png image.
 Version: 0.22 
 Author: David Burns
-Author URI: http://www.t2img.com/blog/
+Author URI: http://t2img.com/blog/
 */ 
 
 
