@@ -1,11 +1,11 @@
 <?php
-/*
+/* 
 Plugin Name: TextImage
-Plugin URI: http://t2img.com/blog/wp-content/textimage.zip
-Description: This plugin displays the text of your post as a .png image. 
+Plugin URI: http://www.t2img.com/blog/?p=8
+Description: This plugin converts text into a .png image.
+Version: 0.22 
 Author: David Burns
-Version: 0.21
-Author URI: http://www.t2img.com/blog/
+Author URI: http://t2img.com/blog/
 */ 
 
 
@@ -30,7 +30,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 
 // globals - replace with configuration options
-	$textimage_font_directory = '/usr/share/fonts/'; // recursively search this directory for ttf fonts
+	if (strlen($textimage_font_directory) == 0) // specify a default
+	{
+		$textimage_font_directory = '/usr/share/fonts/'; // recursively search this directory for ttf fonts
+		// update_option("textimage_font_directory", $textimage_font_directory);
+	}
 
 	include 'wrapped_text_image.php';
 
@@ -43,6 +47,27 @@ if ( !function_exists('htmlspecialchars_decode') )
         return strtr($text, array_flip(get_html_translation_table(HTML_SPECIALCHARS)));
     }
 }
+
+// Wordpress 2.7.1 introduced an untested, buggy version of htmlspecialchars_decode
+// so now we need to work around Wordpress. 
+
+// our special version - same as the above declaration
+function ti_htmlspecialchars_decode_impl($text)
+{
+    return strtr($text, array_flip(get_html_translation_table(HTML_SPECIALCHARS)));
+}
+
+// which to use?
+$ti_htmlspecialchars_decode = "ti_htmlspecialchars_decode_impl";
+if (floatval(phpversion()) < 5.1)
+{
+	$ti_htmlspecialchars_decode = "ti_htmlspecialchars_decode_impl"; // use my version
+} else {
+	$ti_htmlspecialchars_decode = "htmlspecialchars_decode"; // use PHP version
+}
+
+
+
 
 // filter function
 // scan file for <textimage> tags.
@@ -80,7 +105,7 @@ if ( !function_exists('htmlspecialchars_decode') )
 	
 	function textimage_convert_some_text($the_text)
 	{
-		global $textimage_font, $textimage_font_directory;
+		global $textimage_font, $textimage_font_directory,$ti_htmlspecialchars_decode;
 		if (function_exists('imagettftext')) {
 			$image = null;
 			$basename = md5($the_text) . '.png';
@@ -91,7 +116,7 @@ if ( !function_exists('htmlspecialchars_decode') )
 				$fh = 0 + get_option('textimage_font_height');
 				$iw = 0 + get_option('textimage_image_width');
 				$fontfile = get_option('textimage_font');
-				$image = wrapped_text_image(htmlspecialchars_decode(strip_tags($the_text)),$fontfile,
+				$image = wrapped_text_image($ti_htmlspecialchars_decode(strip_tags($the_text)),$fontfile,
 					$fh,$tcol,$bcol,$iw);
 				imagepng($image, $filename); // save to cache
 			} else {
@@ -140,10 +165,7 @@ if ( !function_exists('htmlspecialchars_decode') )
 		$t = stripslashes($t);
 		if ($t[strlen($t)-1] != '/')
 		{
-			// error_log("adding slash to $t");
 			$t .= '/';
-		} else {
-			// error_log("$t does not need a slash.");
 		}
 		return $t;
 	}
@@ -154,7 +176,8 @@ if ( !function_exists('htmlspecialchars_decode') )
 	{
 		global $textimage_font, $textimage_font_directory;
 		if (!empty($_POST)) {
-			error_log("display text: " . $_POST['textimage_display_text']);
+	//		error_log("display text: " . $_POST['textimage_display_text']);
+			$textimage_font_directory = validate_path($_POST['textimage_font_directory']);
 			$textimage_cache = validate_path($_POST['textimage_cache']);
 			$textimage_cache_url = validate_path($_POST['textimage_cache_url']);
 			// clear the image cache 
@@ -168,6 +191,7 @@ if ( !function_exists('htmlspecialchars_decode') )
 			}
 			update_option("textimage_cache", $textimage_cache);
 			update_option("textimage_cache_url", $textimage_cache_url);
+			update_option("textimage_font_directory", $textimage_font_directory);
 			update_option("textimage_image_width", $_POST['textimage_image_width']);
 			update_option("textimage_font_height", $_POST['textimage_font_height']);
 			update_option("textimage_text_color", $_POST['textimage_text_color']);
@@ -177,13 +201,17 @@ if ( !function_exists('htmlspecialchars_decode') )
 		} 
 			$textimage_cache = get_option("textimage_cache");
 			$textimage_cache_url = get_option("textimage_cache_url");
+			$textimage_font_directory = get_option("textimage_font_directory");
 			$textimage_image_width = get_option("textimage_image_width");
 			$textimage_font_height = get_option("textimage_font_height");
 			$textimage_text_color = get_option("textimage_text_color");
 			$textimage_background_color = get_option("textimage_background_color");
 			$textimage_font = get_option("textimage_font");
 			$textimage_display_text = get_option("textimage_display_text");
-		
+		if (strlen($textimage_font_directory) == 0) {
+			$textimage_font_directory = '/usr/share/fonts/'; // set a default
+			update_option('textimage_font_directory', $textimage_font_directory); 
+		}	
 		$fontlist = textimage_get_fontlist($textimage_font_directory);
 		?>
 		<div class="wrap">
@@ -207,6 +235,9 @@ if ( !function_exists('htmlspecialchars_decode') )
 			size=30 value='<?php echo get_option('textimage_cache'); ?>' ></td></tr>
 		<tr><th scope="row">Image cache URL:</th><td><input type="text" id="textimage_cache_url" 
 			name="textimage_cache_url" size=30 value='<?php echo get_option('textimage_cache_url'); ?>' ></td></tr>
+		<tr><th scope="row">Font directory:</th><td>
+		<input type="text" id="textimage_font_directory" name="textimage_font_directory" 
+			size=30 value='<?php echo get_option('textimage_font_directory'); ?>' ></td></tr>
 		<tr><th scope="row">Image width (pixels):</th><td><input type="text" name="textimage_image_width" id="textimage_image_width" 
 			size=6 value='<?php echo get_option('textimage_image_width'); ?>' ></td></tr>
 		<tr><th scope="row">Font height (points):</th><td><input type="text" id="textimage_font_height" name="textimage_font_height" 
@@ -269,6 +300,9 @@ if ( !function_exists('htmlspecialchars_decode') )
 
 /* Version history
 
+	0.22 add font directory to options page; workaraound for bug in WP 2.7.1
+	0.21 fix it
+	0.20 add tag processing
 	0.13 add textimage_display_text option
 	0.12 use htmlspecialchars_decode/encode 
 	0.11 Added URI to comment, and this version history. also, add a trailing slash if needed to cahce and url.
